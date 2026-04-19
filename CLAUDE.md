@@ -1,6 +1,8 @@
 # lmnp — BNP Paribas statement retrieval
 
-This project automates retrieval of BNP Paribas bank account data (balances, transaction history, documents) using [woob](https://woob.tech). It exists because BNP has no public API for personal use; woob screen-scrapes the retail web interface on your behalf. Everything runs locally — no third-party servers are involved.
+This project is **step one of a French LMNP (Loueur Meublé Non Professionnel) tax-filing workflow.** It automates retrieval of BNP Paribas bank account data (balances, transaction history, documents) and extraction of transaction history from PDF statements. The extracted movements feed downstream accounting document generation (recettes, charges, amortissements, liasse fiscale).
+
+BNP has no public API for personal use; [woob](https://woob.tech) screen-scrapes the retail web interface on your behalf. Everything runs locally — no third-party servers are involved.
 
 ---
 
@@ -15,6 +17,17 @@ This project automates retrieval of BNP Paribas bank account data (balances, tra
 
 - **`transactions.py`** — fetch all transactions for the joint account and write `transactions.csv` (date, label, amount). Run: `.venv/Scripts/python.exe transactions.py [output.csv]`
 - **`apply_patches.py`** — reapply the local woob module patches after a fresh install or `woob config update`. Run: `.venv/Scripts/python.exe apply_patches.py`
+- **`pdf_to_csv.py`** — extract transactions from joint account PDFs in `statements/` using the Claude API and append them to a master `statements.csv` (same schema: date, label, amount). Run: `.venv/Scripts/python.exe pdf_to_csv.py [output.csv]`
+
+  Only processes files matching `*_4225_*.pdf` (joint account statements). Mortgage documentation (`*_8946_*.pdf`) is silently ignored — it contains no transaction table.
+
+  Requires the Anthropic SDK auth env vars to be set (same ones that power Claude Code in this environment). Set `ANTHROPIC_MODEL` to override the default model (`claude-sonnet-4-6--111582`).
+
+  Results are cached per PDF in `.pdf_cache/` — re-runs only process new files and append to the existing CSV. PDFs are sent as base64 document blocks (no Files API), which works with Vertex AI and LiteLLM proxy endpoints.
+
+  Two known behaviours to be aware of:
+  - Labels from PDFs are fuller than woob's truncated versions.
+  - `INST EMIS` / `INST RECU` instant transfers are dated in the month they occur but appear on the *following* month's PDF.
 
 ## Key commands
 
