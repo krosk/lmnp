@@ -1,0 +1,2 @@
+woob==3.7
+prettytable==3.17.0
