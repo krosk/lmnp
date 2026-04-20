@@ -50,6 +50,20 @@ uv pip install -r requirements.txt
 .venv/Scripts/python.exe apply_patches.py          # reapply the 3 module fixes
 ```
 
+## Bookkeeping artefacts
+
+These files are not in the automated pipeline but are the primary accounting record for the LMNP activity. They live locally and are synced manually to Google Drive.
+
+- **`LMNP.xlsx`** — the master bookkeeping workbook. Sheets:
+  - `Table` — transaction journal (Date, Moyen, Compte, Nature, Commentaire, Débit, Crédit, Justificatif). One row per cash movement. See `.claude/rules/table-categorisation.md` for Nature values and filing treatment, and `.claude/rules/table-justificatif.md` for the Justificatif numbering convention.
+  - `Mortgage` — amortisation table; computes deductible interest and insurance per month (feeds 2033-B line 294).
+  - `Immobilisation` — component breakdown and annual amortissement (feeds 2033-C).
+  - `Informations` — SIREN/SIRET, tax regime, Teledec links.
+  - `2021-2022`, `2023`, `2024`, `2025` — one sheet per fiscal year; assembles 2033-A, 2033-B, 2033-C, and 2031 figures for entry into Teledec.
+  - `Guide` — reference links and filing reminders (human-only).
+
+- **`Justificatifs/`** — numbered PDFs backing every Table entry (bank statements, invoices, receipts, contracts). Named `NNNN_YYMMDD_description.pdf`. Current maximum: **143**. Not tracked by git (`*.pdf` in `.gitignore`) — sync to Google Drive alongside `LMNP.xlsx`.
+
 ## Architecture decisions
 
 See `docs/decisions/` for rationale behind key choices:
