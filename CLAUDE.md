@@ -26,6 +26,7 @@ BNP has no public API for personal use; [woob](https://woob.tech) screen-scrapes
   - `delete-range --from DATE --to DATE [--dry-run]` — delete rows in a date range
   - `append-csv FILE [--dry-run]` — insert rows from a CSV in date order (see CSV schema below)
   - `summary [--year YYYY]` — totals by Nature
+  - `edit ROW --field VALUE [...]` — update one or more fields of a row by its row number (as shown in `list`); supports `--moyen`, `--compte`, `--nature`, `--commentaire`, `--debit`, `--credit`, `--justificatif`; `--dry-run` supported
   - `justificatif-max` — show current max justificatif number and next available
 
   CSV schema for `append-csv`: `date,moyen,compte,nature,commentaire,debit,credit,justificatif`

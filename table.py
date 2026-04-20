@@ -209,6 +209,44 @@ def cmd_summary(args, wb, ws):
     print(f"{'TOTAL':15}  {'':>5}  {grand_d:>12.2f}  {grand_c:>12.2f}")
 
 
+def cmd_edit(args, wb, ws):
+    target = args.row
+    found = None
+    for idx, d, row in iter_data_rows(ws):
+        if idx == target:
+            found = (idx, d, row)
+            break
+    if not found:
+        sys.exit(f"Row {target} not found.")
+
+    idx, d, row = found
+    fields = ["moyen", "compte", "nature", "commentaire", "debit", "credit", "justificatif"]
+    new_row = list(row)  # date, moyen, compte, nature, commentaire, debit, credit, just
+
+    changes = []
+    for i, field in enumerate(fields, 1):
+        val = getattr(args, field)
+        if val is not None:
+            changes.append((field, row[i], val))
+            new_row[i] = val
+
+    if not changes:
+        sys.exit("No fields specified to edit.")
+
+    label = "[DRY RUN] " if args.dry_run else ""
+    ds = d.strftime("%Y-%m-%d") if d else "?"
+    print(f"{label}Edit row {idx} ({ds}):")
+    for field, old, new in changes:
+        print(f"  {field}: {old!r} -> {new!r}")
+
+    if args.dry_run:
+        return
+
+    write_row(ws, idx, new_row)
+    wb.save(args.workbook)
+    print(f"Saved {args.workbook}.")
+
+
 def cmd_jmax(args, wb, ws):
     mx = 0
     for _, _, row in iter_data_rows(ws):
@@ -262,6 +300,18 @@ def main():
     ss = sub.add_parser("summary", help="Totals by Nature")
     ss.add_argument("--year", type=int)
 
+    # edit
+    se = sub.add_parser("edit", help="Edit fields of a specific row by row number")
+    se.add_argument("row", type=int, help="Row number as shown in 'list' output")
+    se.add_argument("--moyen")
+    se.add_argument("--compte")
+    se.add_argument("--nature")
+    se.add_argument("--commentaire")
+    se.add_argument("--debit")
+    se.add_argument("--credit")
+    se.add_argument("--justificatif")
+    se.add_argument("--dry-run", action="store_true")
+
     # justificatif-max
     sub.add_parser("justificatif-max",
                    help="Show current max justificatif number")
@@ -274,6 +324,7 @@ def main():
         "delete-range":     cmd_delete_range,
         "append-csv":       cmd_append_csv,
         "summary":          cmd_summary,
+        "edit":             cmd_edit,
         "justificatif-max": cmd_jmax,
     }
     dispatch[args.cmd](args, wb, ws)
