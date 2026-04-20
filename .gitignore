@@ -3,4 +3,5 @@
 *.pdf
 statements/
 .pdf_cache/
-.claude/
+.claude/*
+!.claude/rules
