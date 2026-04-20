@@ -18,6 +18,25 @@ BNP has no public API for personal use; [woob](https://woob.tech) screen-scrapes
 - **`transactions.py`** — fetch all transactions for the joint account and write `transactions.csv` (date, label, amount). Run: `.venv/Scripts/python.exe transactions.py [output.csv]`
 - **`apply_patches.py`** — reapply the local woob module patches after a fresh install or `woob config update`. Run: `.venv/Scripts/python.exe apply_patches.py`
 - **`pdf_to_csv.py`** — extract transactions from joint account PDFs in `statements/` using the Claude API and append them to a master `statements.csv` (same schema: date, label, amount). Run: `.venv/Scripts/python.exe pdf_to_csv.py [output.csv]`
+- **`orchestra.py`** — Download documents (appels de fonds, etc.) from the Agence Joffard Orchestra/Egiweb extranet. Requires `ORCHESTRA_LOGIN` and `ORCHESTRA_PASSWORD` in `.claude/.env`. Run: `.venv/Scripts/python.exe orchestra.py [output_dir]` (default: `charges/`). Use `--list` to preview without downloading; `--type all` to include all document types. Re-runs skip already-downloaded files. Portal: `https://www.orchestrav2.egiweb.net/`
+- **`table.py`** — CLI for reading and editing the Table sheet of `LMNP.xlsx`. Run: `.venv/Scripts/python.exe table.py <command> [options]`
+
+  Commands:
+  - `list [--year YYYY] [--nature N] [--from DATE] [--to DATE] [--format table|tsv]` — list entries
+  - `delete-range --from DATE --to DATE [--dry-run]` — delete rows in a date range
+  - `append-csv FILE [--dry-run]` — insert rows from a CSV in date order (see CSV schema below)
+  - `summary [--year YYYY]` — totals by Nature
+  - `justificatif-max` — show current max justificatif number and next available
+
+  CSV schema for `append-csv`: `date,moyen,compte,nature,commentaire,debit,credit,justificatif`
+  — `date` is ISO `YYYY-MM-DD`; `debit`/`credit` are positive floats or empty; `justificatif` must be quoted if it contains a comma (e.g. `"144,45"`).
+
+  Typical year-backfill workflow:
+  1. `pdf_to_csv.py` to extract statements → `statements.csv`
+  2. Classify LMNP-relevant transactions → write a CSV with the 8-column schema
+  3. `table.py delete-range --from YYYY-01-01 --to YYYY-12-31 --dry-run` to preview what gets cleared
+  4. `table.py delete-range --from YYYY-01-01 --to YYYY-12-31` to clear placeholder rows
+  5. `table.py append-csv entries.csv --dry-run` then `append-csv entries.csv` to insert
 
   Only processes files matching `*_4225_*.pdf` (joint account statements). Mortgage documentation (`*_8946_*.pdf`) is silently ignored — it contains no transaction table.
 

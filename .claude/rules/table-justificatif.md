@@ -10,31 +10,18 @@ The Justificatif column in the Table sheet ties every transaction to its physica
 
 ## Numbering rules
 
-- Assign the next unused integer above the current maximum when adding a new document.
-- The current maximum is **143** (developer devis D201-DEVIS TMAV2, assigned 2026-04).
+- Numbers are assigned incrementally — no predefined blocks per document type.
+- The current maximum is always the output of `table.py justificatif-max`. Do not hardcode it here.
 - A single transaction may reference multiple documents: use a comma-separated list (e.g. `37,143`).
 - A single document may justify multiple transactions on the same bank statement: repeat the same number across those rows.
 - Never reuse a number. Never leave a number as `x` or blank once the document is located.
 
-## Document types covered by the sequence
-
-| Range (approximate) | Type |
-|---|---|
-| 1–4 | Initial VEFA / notaire contracts |
-| 5–52 | Monthly bank statements (BNP joint account) |
-| 42–45 | Twinseo insurance contracts (HAR1012515, HAR1018934) |
-| 46+ | Individual receipts and invoices |
-| 143 | Developer devis D201-DEVIS TMAV2 (TMA, Atland, 07/09/2021) |
-
-Bank statement numbers and receipt numbers overlap in the 42–52 range; the document type is unambiguous from context.
-
 ## Adding a new document — steps
 
-1. Identify the next available number (currently **144**).
-2. Copy the PDF to `Justificatifs/` using the naming convention `NNNN_YYMMDD_description.pdf` (4-digit zero-padded number, date as YYMMDD, short description with underscores). Example: `0144_240310_description.pdf`.
-3. In the Table row, set the Justificatif cell to that number, or append it comma-separated if a bank statement reference already exists (e.g. `53,144`).
-4. Update the maximum number in this file.
-5. Sync `Justificatifs/` and `LMNP.xlsx` to Google Drive.
+1. Run `table.py justificatif-max` to get the next available number.
+2. Copy the PDF to `Justificatifs/` using the naming convention `NNNN_YYMMDD_description.pdf` (4-digit zero-padded number, date as YYMMDD, short description with underscores). Example: `0156_250407_opale_charges_25T1.pdf`.
+3. In the Table row, set the Justificatif cell to that number, or append it comma-separated if a bank statement reference already exists (e.g. `147,156`).
+4. Sync `Justificatifs/` and `LMNP.xlsx` to Google Drive.
 
 ## File naming convention
 

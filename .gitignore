@@ -1,7 +1,9 @@
 .venv/
 *.csv
 *.pdf
+*.xlsx
 statements/
 .pdf_cache/
+charges/
 .claude/*
 !.claude/rules
