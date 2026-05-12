@@ -13,11 +13,35 @@ BNP has no public API for personal use; [woob](https://woob.tech) screen-scrapes
 - **woob backend name:** `bnp` (configured via `woob config add bnp`)
 - **Credentials file:** `%USERPROFILE%/.config/woob/backends` — plaintext, local use only
 
+## Pipeline
+
+End-to-end order for a year-backfill or ongoing update:
+
+1. **Download statements + extract transactions** — skill `lmnp-download-bnp-statements` → `statements/` + `statements.csv`. For the most recent ~13 months, `transactions.py` gives the same schema directly from the API with truncated labels.
+2. **Download charge documents** — `orchestra.py` → `charges/` (appels de fonds, etc.)
+3. **Classify and backfill** — skill `lmnp-year-backfill` → `LMNP.xlsx`
+
+Steps 1–2 are automated. Step 3 requires manual classification of transactions before the `table.py` commands can be run.
+
+---
+
 ## Scripts
 
+- **`bnp_statements.py`** — bulk-download all PDF statements (~5 years) from both accounts to `statements/`. Skips existing files. Lives in `.claude/skills/lmnp-download-bnp-statements/`. Run: `.venv/Scripts/python.exe .claude/skills/lmnp-download-bnp-statements/bnp_statements.py [--dry-run] [--year YYYY] [output_dir]`
 - **`transactions.py`** — fetch all transactions for the joint account and write `transactions.csv` (date, label, amount). Run: `.venv/Scripts/python.exe transactions.py [output.csv]`
 - **`apply_patches.py`** — reapply the local woob module patches after a fresh install or `woob config update`. Run: `.venv/Scripts/python.exe apply_patches.py`
-- **`pdf_to_csv.py`** — extract transactions from joint account PDFs in `statements/` using the Claude API and append them to a master `statements.csv` (same schema: date, label, amount). Run: `.venv/Scripts/python.exe pdf_to_csv.py [output.csv]`
+- **`bnp_pdf_to_csv.py`** — extract transactions from joint account PDFs in `statements/` using the Claude API and append them to a master `statements.csv` (same schema: date, label, amount). Lives in `.claude/skills/lmnp-download-bnp-statements/`. Run: `.venv/Scripts/python.exe .claude/skills/lmnp-download-bnp-statements/bnp_pdf_to_csv.py [output.csv]`
+
+  Only processes files matching `*_4225_*.pdf` (joint account statements). Mortgage documentation (`*_8946_*.pdf`) is silently ignored — it contains no transaction table.
+
+  Requires the Anthropic SDK auth env vars to be set (same ones that power Claude Code in this environment). Set `ANTHROPIC_MODEL` to override the default model (`claude-sonnet-4-6--111582`).
+
+  Results are cached per PDF in `.pdf_cache/` — re-runs only process new files and append to the existing CSV. PDFs are sent as base64 document blocks (no Files API), which works with Vertex AI and LiteLLM proxy endpoints.
+
+  Two known behaviours to be aware of:
+  - Labels from PDFs are fuller than woob's truncated versions.
+  - `INST EMIS` / `INST RECU` instant transfers are dated in the month they occur but appear on the *following* month's PDF.
+
 - **`orchestra.py`** — Download documents (appels de fonds, etc.) from the Agence Joffard Orchestra/Egiweb extranet. Requires `ORCHESTRA_LOGIN` and `ORCHESTRA_PASSWORD` in `.claude/.env`. Run: `.venv/Scripts/python.exe orchestra.py [output_dir]` (default: `charges/`). Use `--list` to preview without downloading; `--type all` to include all document types. Re-runs skip already-downloaded files. Portal: `https://www.orchestrav2.egiweb.net/`
 - **`table.py`** — CLI for reading and editing the Table sheet of `LMNP.xlsx`. Run: `.venv/Scripts/python.exe table.py <command> [options]`
 
@@ -33,21 +57,11 @@ BNP has no public API for personal use; [woob](https://woob.tech) screen-scrapes
   — `date` is ISO `YYYY-MM-DD`; `debit`/`credit` are positive floats or empty; `justificatif` must be quoted if it contains a comma (e.g. `"144,45"`).
 
   Typical year-backfill workflow:
-  1. `pdf_to_csv.py` to extract statements → `statements.csv`
+  1. `.claude/skills/lmnp-download-bnp-statements/bnp_pdf_to_csv.py` to extract statements → `statements.csv`
   2. Classify LMNP-relevant transactions → write a CSV with the 8-column schema
   3. `table.py delete-range --from YYYY-01-01 --to YYYY-12-31 --dry-run` to preview what gets cleared
   4. `table.py delete-range --from YYYY-01-01 --to YYYY-12-31` to clear placeholder rows
   5. `table.py append-csv entries.csv --dry-run` then `append-csv entries.csv` to insert
-
-  Only processes files matching `*_4225_*.pdf` (joint account statements). Mortgage documentation (`*_8946_*.pdf`) is silently ignored — it contains no transaction table.
-
-  Requires the Anthropic SDK auth env vars to be set (same ones that power Claude Code in this environment). Set `ANTHROPIC_MODEL` to override the default model (`claude-sonnet-4-6--111582`).
-
-  Results are cached per PDF in `.pdf_cache/` — re-runs only process new files and append to the existing CSV. PDFs are sent as base64 document blocks (no Files API), which works with Vertex AI and LiteLLM proxy endpoints.
-
-  Two known behaviours to be aware of:
-  - Labels from PDFs are fuller than woob's truncated versions.
-  - `INST EMIS` / `INST RECU` instant transfers are dated in the month they occur but appear on the *following* month's PDF.
 
 ## Key commands
 
@@ -60,6 +74,20 @@ BNP has no public API for personal use; [woob](https://woob.tech) screen-scrapes
 ```
 
 **Note:** `woob bill list` is not a valid command — use `documents` or `bills`.
+
+## Downloading statements
+
+PDF statements are stored in `statements/` (gitignored). Thanks to the patched `rechercheCriteresDemat` endpoint, the module exposes ~5 years of statements (vs the upstream 6-month cap).
+
+Use `bnp_statements.py` (lives in `.claude/skills/lmnp-download-bnp-statements/`):
+
+```bash
+.venv/Scripts/python.exe .claude/skills/lmnp-download-bnp-statements/bnp_statements.py --dry-run   # preview
+.venv/Scripts/python.exe .claude/skills/lmnp-download-bnp-statements/bnp_statements.py              # download
+.venv/Scripts/python.exe .claude/skills/lmnp-download-bnp-statements/bnp_statements.py --year 2025  # one year only
+```
+
+Files are named `YYYY-MM-DD_NNNN_DOCID.pdf` (e.g. `2024-03-27_4225_ZZ1FWITQFZL3RJ4KE.pdf`). This convention satisfies the `*_4225_*.pdf` pattern that `bnp_pdf_to_csv.py` uses to filter joint account statements.
 
 ## Reinstall / reset
 
