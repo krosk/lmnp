@@ -7,3 +7,5 @@ statements/
 charges/
 .claude/*
 !.claude/rules
+!.claude/settings.json
+!.claude/hooks
