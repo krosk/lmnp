@@ -1,3 +1,9 @@
+# Rules
+
+- Do not append the Claude session URL to commit messages.
+
+---
+
 # lmnp — BNP Paribas statement retrieval
 
 This project is **step one of a French LMNP (Loueur Meublé Non Professionnel) tax-filing workflow.** It automates retrieval of BNP Paribas bank account data (balances, transaction history, documents) and extraction of transaction history from PDF statements. The extracted movements feed downstream accounting document generation (recettes, charges, amortissements, liasse fiscale).
