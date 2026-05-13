@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
-# Ensures the lmnp-gdrive rclone remote is configured using the project service account.
+# Ensures the lmnp-gdrive-user rclone remote is configured using the stored OAuth token.
 set -euo pipefail
 
-REMOTE_NAME="lmnp-gdrive"
+REMOTE_NAME="lmnp-gdrive-user"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-SA_FILE="${SCRIPT_DIR}/../gdrive-sa.json"
+TOKEN_FILE="${SCRIPT_DIR}/../gdrive-user-token.json"
 
-if [[ ! -f "${SA_FILE}" ]]; then
-    echo "[session-start] ${SA_FILE} not found — skipping rclone gdrive setup" >&2
+if [[ ! -f "${TOKEN_FILE}" ]]; then
+    echo "[session-start] ${TOKEN_FILE} not found — skipping rclone gdrive setup" >&2
     exit 0
 fi
 
@@ -30,14 +30,18 @@ if ! command -v rclone &>/dev/null; then
     fi
 fi
 
-# Create the remote if it does not exist yet
+TOKEN="$(cat "${TOKEN_FILE}")"
+
+# Create or update the remote with the current token
 if ! rclone listremotes 2>/dev/null | grep -qx "${REMOTE_NAME}:"; then
     rclone config create "${REMOTE_NAME}" drive \
         scope drive \
-        service_account_file "${SA_FILE}" \
-        shared_with_me true \
+        token "${TOKEN}" \
         --non-interactive >/dev/null
     echo "[session-start] rclone remote '${REMOTE_NAME}' created"
 else
-    echo "[session-start] rclone remote '${REMOTE_NAME}' already configured"
+    rclone config update "${REMOTE_NAME}" \
+        token "${TOKEN}" \
+        --non-interactive >/dev/null 2>&1 || true
+    echo "[session-start] rclone remote '${REMOTE_NAME}' updated"
 fi

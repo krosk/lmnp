@@ -16,7 +16,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash -c 'echo \"${CLAUDE_TOOL_INPUT:-}\" | grep -q gdrive-sa.json && bash .claude/hooks/session-start.sh || true'"
+            "command": "bash -c 'echo \"${CLAUDE_TOOL_INPUT:-}\" | grep -q gdrive-user-token.json && bash .claude/hooks/session-start.sh || true'"
           }
         ]
       }
