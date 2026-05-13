@@ -5,5 +5,8 @@
 statements/
 .pdf_cache/
 charges/
+workspace/
 .claude/*
 !.claude/rules
+!.claude/settings.json
+!.claude/hooks

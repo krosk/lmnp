@@ -104,11 +104,33 @@ uv pip install -r requirements.txt
 .venv/Scripts/python.exe apply_patches.py          # reapply the 3 module fixes
 ```
 
+## Google Drive sync (rclone)
+
+A SessionStart hook in `.claude/settings.json` auto-configures an rclone remote named `lmnp-gdrive` backed by the `lmnp-853@plant-shop-306823.iam.gserviceaccount.com` service account.
+
+**Credentials:** `.claude/gdrive-sa.json` — gitignored, never committed. The user provides the file at the start of each session (upload in the first message); a `PostToolUse` hook automatically runs the session-start script the moment Claude writes that file, so rclone is ready immediately without any manual step. Share Drive files or folders with the service account email to make them accessible.
+
+**Sync the workspace folder:**
+```bash
+bash gdrive-sync.sh down   # download lmnp-gdrive:workspace/ → local workspace/
+bash gdrive-sync.sh up     # upload local workspace/ → lmnp-gdrive:workspace/
+```
+
+`workspace/` contains `LMNP.xlsx` and `Justificatifs/` and is gitignored.
+
+**Common rclone commands:**
+```bash
+rclone ls lmnp-gdrive:                          # list files shared with the service account
+rclone ls lmnp-gdrive:workspace/               # list workspace contents on Drive
+```
+
+If rclone is not on `PATH` the hook installs it to `~/.local/bin/` automatically on first session start.
+
 ## Bookkeeping artefacts
 
 These files are not in the automated pipeline but are the primary accounting record for the LMNP activity. They live locally and are synced manually to Google Drive.
 
-- **`LMNP.xlsx`** — the master bookkeeping workbook. Sheets:
+- **`workspace/LMNP.xlsx`** — the master bookkeeping workbook. Sheets:
   - `Table` — transaction journal (Date, Moyen, Compte, Nature, Commentaire, Débit, Crédit, Justificatif). One row per cash movement. See `.claude/rules/table-categorisation.md` for Nature values and filing treatment, and `.claude/rules/table-justificatif.md` for the Justificatif numbering convention.
   - `Mortgage` — amortisation table; computes deductible interest and insurance per month (feeds 2033-B line 294).
   - `Immobilisation` — component breakdown and annual amortissement (feeds 2033-C).
@@ -116,7 +138,7 @@ These files are not in the automated pipeline but are the primary accounting rec
   - `2021-2022`, `2023`, `2024`, `2025` — one sheet per fiscal year; assembles 2033-A, 2033-B, 2033-C, and 2031 figures for entry into Teledec.
   - `Guide` — reference links and filing reminders (human-only).
 
-- **`Justificatifs/`** — numbered PDFs backing every Table entry (bank statements, invoices, receipts, contracts). Named `NNNN_YYMMDD_description.pdf`. Current maximum: **143**. Not tracked by git (`*.pdf` in `.gitignore`) — sync to Google Drive alongside `LMNP.xlsx`.
+- **`workspace/Justificatifs/`** — numbered PDFs backing every Table entry (bank statements, invoices, receipts, contracts). Named `NNNN_YYMMDD_description.pdf`. Current maximum: **143**. Not tracked by git — sync to Google Drive with `bash gdrive-sync.sh up`.
 
 ## Architecture decisions
 
