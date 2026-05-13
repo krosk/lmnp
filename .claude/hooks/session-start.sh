@@ -33,6 +33,12 @@ fi
 
 TOKEN="$(cat "${TOKEN_FILE}")"
 
+# Export WOOB_BACKENDS to a sourceable env file for CLI use
+PROJECT_DIR="$(cd "${SCRIPT_DIR}/../.." && pwd)"
+WOOB_BACKENDS_PATH="${PROJECT_DIR}/workspace/backends"
+echo "export WOOB_BACKENDS='${WOOB_BACKENDS_PATH}'" > /tmp/lmnp-env.sh
+echo "[session-start] WOOB_BACKENDS=${WOOB_BACKENDS_PATH} (source /tmp/lmnp-env.sh for CLI use)"
+
 # Create or update the remote with the current token
 if ! rclone listremotes 2>/dev/null | grep -qx "${REMOTE_NAME}:"; then
     rclone config create "${REMOTE_NAME}" drive \

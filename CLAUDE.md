@@ -15,10 +15,10 @@ BNP has no public API for personal use; [woob](https://woob.tech) screen-scrapes
 
 ## Environment
 
-- **Runtime:** Python 3.14 via `.venv/` (created with `uv`)
-- **Activate:** `.venv/Scripts/activate` (Windows) or `.venv/bin/python` directly
-- **woob backend name:** `bnp` (configured via `woob config add bnp`)
-- **Credentials file:** `%USERPROFILE%/.config/woob/backends` — plaintext, local use only
+- **Runtime:** Python 3.x via `.venv/` (created with `uv`)
+- **Invoke:** `.venv/bin/python` directly
+- **woob backend name:** `bnp`
+- **Credentials file:** `workspace/backends` — INI format, synced from Google Drive. Available after `bash gdrive-sync.sh down`.
 
 ## Pipeline
 
@@ -72,13 +72,18 @@ Steps 1–2 are automated. Step 3 requires manual classification of transactions
 
 ## Key commands
 
+The woob CLI needs `WOOB_BACKENDS` set to point to the credentials file in `workspace/`. The SessionStart hook writes `/tmp/lmnp-env.sh` for this purpose:
+
 ```bash
+source /tmp/lmnp-env.sh
 .venv/bin/python -m woob bank list                              # list accounts + balances
 .venv/bin/python -m woob bank history <account_id>              # transaction history (interactive)
 .venv/bin/python -m woob bill documents <account_id>            # list statements for one account
 .venv/bin/python -m woob bill download <doc_id> <filename.pdf>  # download one statement
 .venv/bin/python -m woob bill download all                      # download all statements
 ```
+
+The Python scripts (`bnp_statements.py`, etc.) set `WOOB_BACKENDS` automatically — no sourcing needed.
 
 **Note:** `woob bill list` is not a valid command — use `documents` or `bills`.
 
@@ -101,9 +106,10 @@ Files are named `YYYY-MM-DD_NNNN_DOCID.pdf` (e.g. `2024-03-27_4225_ZZ1FWITQFZL3R
 ```bash
 uv venv .venv
 uv pip install -r requirements.txt
-.venv/bin/python -m woob config add bnp    # enter credentials once
 .venv/bin/python apply_patches.py          # reapply the 3 module fixes
 ```
+
+Credentials are in `workspace/backends` (synced from Google Drive — run `bash gdrive-sync.sh down` first). No interactive setup needed.
 
 ## Google Drive sync (rclone)
 
