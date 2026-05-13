@@ -18,7 +18,7 @@ BNP has no public API for personal use; [woob](https://woob.tech) screen-scrapes
 - **Runtime:** Python 3.x via `.venv/` (created with `uv`)
 - **Invoke:** `.venv/bin/python` directly
 - **woob backend name:** `bnp`
-- **Credentials file:** `workspace/backends` — INI format, synced from Google Drive. Available after `bash gdrive-sync.sh down`.
+- **Credentials file:** `workspace/backends/woob/backends` — INI format, synced from Google Drive. Available after `bash gdrive-sync.sh down`.
 
 ## Pipeline
 
@@ -109,7 +109,7 @@ uv pip install -r requirements.txt
 .venv/bin/python apply_patches.py          # reapply the 3 module fixes
 ```
 
-Credentials are in `workspace/backends` (synced from Google Drive — run `bash gdrive-sync.sh down` first). No interactive setup needed.
+Credentials are in `workspace/backends/woob/backends` (synced from Google Drive — run `bash gdrive-sync.sh down` first). No interactive setup needed.
 
 ## Google Drive sync (rclone)
 
