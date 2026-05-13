@@ -110,12 +110,17 @@ A SessionStart hook in `.claude/settings.json` auto-configures an rclone remote 
 
 **Credentials:** `.claude/gdrive-sa.json` — gitignored, never committed. The user provides the file at the start of each session (upload in the first message); a `PostToolUse` hook automatically runs the session-start script the moment Claude writes that file, so rclone is ready immediately without any manual step. Share Drive files or folders with the service account email to make them accessible.
 
+**Sync to Google Drive:**
+```bash
+bash gdrive-sync.sh   # upload LMNP.xlsx and Justificatifs/ to lmnp-gdrive:lmnp/
+```
+
 **Common rclone commands:**
 ```bash
 rclone ls lmnp-gdrive:                          # list files shared with the service account
 rclone copy LMNP.xlsx lmnp-gdrive:lmnp/         # upload the workbook
 rclone copy lmnp-gdrive:lmnp/LMNP.xlsx .        # download the workbook
-rclone sync Justificatifs/ lmnp-gdrive:lmnp/Justificatifs/  # sync justificatifs folder
+rclone copy Justificatifs/ lmnp-gdrive:lmnp/Justificatifs/  # upload justificatifs folder
 ```
 
 If rclone is not on `PATH` the hook installs it to `~/.local/bin/` automatically on first session start.
