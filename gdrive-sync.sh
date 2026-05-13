@@ -6,7 +6,7 @@
 #   bash gdrive-sync.sh down  — download Google Drive workspace/ to local
 set -euo pipefail
 
-REMOTE="lmnp-gdrive-user:Opale/Workspace"
+REMOTE="lmnp-gdrive-user:Workspace"
 LOCAL="workspace"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 

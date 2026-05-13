@@ -37,11 +37,13 @@ if ! rclone listremotes 2>/dev/null | grep -qx "${REMOTE_NAME}:"; then
     rclone config create "${REMOTE_NAME}" drive \
         scope drive \
         token "${TOKEN}" \
+        root_folder_id 1mqKDoqwFC2k-RrgCQMy3f4WaDFwDPsE3 \
         --non-interactive >/dev/null
     echo "[session-start] rclone remote '${REMOTE_NAME}' created"
 else
     rclone config update "${REMOTE_NAME}" \
         token "${TOKEN}" \
+        root_folder_id 1mqKDoqwFC2k-RrgCQMy3f4WaDFwDPsE3 \
         --non-interactive >/dev/null 2>&1 || true
     echo "[session-start] rclone remote '${REMOTE_NAME}' updated"
 fi
