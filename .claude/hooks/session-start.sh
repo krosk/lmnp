@@ -11,18 +11,23 @@ if [[ ! -f "${SA_FILE}" ]]; then
     exit 0
 fi
 
-# Install rclone if missing (Linux, no sudo required — installs to ~/.local/bin)
+# Install rclone if missing
 if ! command -v rclone &>/dev/null; then
     echo "[session-start] rclone not found, installing…"
-    tmp=$(mktemp -d)
-    curl -fsSL "https://downloads.rclone.org/rclone-current-linux-amd64.zip" -o "${tmp}/rclone.zip"
-    unzip -q "${tmp}/rclone.zip" -d "${tmp}"
-    mkdir -p "${HOME}/.local/bin"
-    cp "${tmp}"/rclone-*-linux-amd64/rclone "${HOME}/.local/bin/rclone"
-    chmod +x "${HOME}/.local/bin/rclone"
-    rm -rf "${tmp}"
-    export PATH="${HOME}/.local/bin:${PATH}"
-    echo "[session-start] rclone installed to ~/.local/bin/rclone"
+    if command -v apt-get &>/dev/null; then
+        apt-get install -y rclone >/dev/null 2>&1
+        echo "[session-start] rclone installed via apt"
+    else
+        tmp=$(mktemp -d)
+        curl -fsSL "https://downloads.rclone.org/rclone-current-linux-amd64.zip" -o "${tmp}/rclone.zip"
+        unzip -q "${tmp}/rclone.zip" -d "${tmp}"
+        mkdir -p "${HOME}/.local/bin"
+        cp "${tmp}"/rclone-*-linux-amd64/rclone "${HOME}/.local/bin/rclone"
+        chmod +x "${HOME}/.local/bin/rclone"
+        rm -rf "${tmp}"
+        export PATH="${HOME}/.local/bin:${PATH}"
+        echo "[session-start] rclone installed to ~/.local/bin/rclone"
+    fi
 fi
 
 # Create the remote if it does not exist yet
