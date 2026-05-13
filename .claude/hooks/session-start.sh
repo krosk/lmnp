@@ -35,6 +35,7 @@ if ! rclone listremotes 2>/dev/null | grep -qx "${REMOTE_NAME}:"; then
     rclone config create "${REMOTE_NAME}" drive \
         scope drive \
         service_account_file "${SA_FILE}" \
+        shared_with_me true \
         --non-interactive >/dev/null
     echo "[session-start] rclone remote '${REMOTE_NAME}' created"
 else
