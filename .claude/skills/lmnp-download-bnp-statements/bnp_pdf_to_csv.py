@@ -20,9 +20,10 @@ from pathlib import Path
 
 import anthropic
 
-STATEMENTS_DIR = Path(__file__).parent / "statements"
+PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent.parent
+STATEMENTS_DIR = PROJECT_ROOT / "workspace" / "statements"
 CACHE_DIR = Path(__file__).parent / ".pdf_cache"
-OUTPUT = sys.argv[1] if len(sys.argv) > 1 else "statements.csv"
+OUTPUT = sys.argv[1] if len(sys.argv) > 1 else str(PROJECT_ROOT / "workspace" / "statements.csv")
 MODEL = os.environ.get("ANTHROPIC_MODEL", "claude-sonnet-4-6--111582")
 
 PROMPT = """Extract all transactions from this BNP Paribas bank statement.
