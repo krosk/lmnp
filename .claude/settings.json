@@ -9,6 +9,17 @@
           }
         ]
       }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash -c 'echo \"${CLAUDE_TOOL_INPUT:-}\" | grep -q gdrive-sa.json && bash .claude/hooks/session-start.sh || true'"
+          }
+        ]
+      }
     ]
   }
 }

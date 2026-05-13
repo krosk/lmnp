@@ -108,7 +108,7 @@ uv pip install -r requirements.txt
 
 A SessionStart hook in `.claude/settings.json` auto-configures an rclone remote named `lmnp-gdrive` backed by the `lmnp-853@plant-shop-306823.iam.gserviceaccount.com` service account.
 
-**Credentials:** `.claude/gdrive-sa.json` — gitignored, never committed. Share Drive files or folders with the service account email to make them accessible.
+**Credentials:** `.claude/gdrive-sa.json` — gitignored, never committed. The user provides the file at the start of each session (upload in the first message); a `PostToolUse` hook automatically runs the session-start script the moment Claude writes that file, so rclone is ready immediately without any manual step. Share Drive files or folders with the service account email to make them accessible.
 
 **Common rclone commands:**
 ```bash
