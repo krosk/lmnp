@@ -106,25 +106,25 @@ uv pip install -r requirements.txt
 
 ## Google Drive sync (rclone)
 
-A SessionStart hook in `.claude/settings.json` auto-configures an rclone remote named `lmnp-gdrive` backed by the `lmnp-853@plant-shop-306823.iam.gserviceaccount.com` service account.
+A SessionStart hook in `.claude/settings.json` auto-configures an rclone remote named `lmnp-gdrive-user` using a personal OAuth token. The remote is rooted at the `Opale/` folder in Google Drive (folder ID `1mqKDoqwFC2k-RrgCQMy3f4WaDFwDPsE3`), so all rclone paths are relative to `Opale/`.
 
-**Credentials:** `.claude/gdrive-sa.json` — gitignored, never committed. The user provides the file at the start of each session (upload in the first message); a `PostToolUse` hook automatically runs the session-start script the moment Claude writes that file, so rclone is ready immediately without any manual step. Share Drive files or folders with the service account email to make them accessible.
+**Credentials:** `.claude/gdrive-user-token.json` — gitignored, never committed. Contains the OAuth refresh token (does not expire). The SessionStart hook reads this file and configures rclone automatically; no manual step required between sessions. If the token is ever lost or revoked, re-run the OAuth flow: start `rclone authorize "drive" --auth-no-open-browser`, open the Google consent URL in a browser, paste the failed redirect URL back, then save the output token JSON to `.claude/gdrive-user-token.json`.
 
 **Sync the workspace folder:**
 ```bash
-bash gdrive-sync.sh down   # download lmnp-gdrive:workspace/ → local workspace/
-bash gdrive-sync.sh up     # upload local workspace/ → lmnp-gdrive:workspace/
+bash gdrive-sync.sh down   # download lmnp-gdrive-user:Workspace/ → local workspace/
+bash gdrive-sync.sh up     # upload local workspace/ → lmnp-gdrive-user:Workspace/
 ```
 
-`workspace/` contains `LMNP.xlsx` and `Justificatifs/` and is gitignored.
+`workspace/` contains `LMNP.xlsx` and `Justificatifs/` and is gitignored. On Drive this maps to `Opale/Workspace/`.
 
 **Common rclone commands:**
 ```bash
-rclone ls lmnp-gdrive:                          # list files shared with the service account
-rclone ls lmnp-gdrive:workspace/               # list workspace contents on Drive
+rclone ls lmnp-gdrive-user:                    # list Opale/ contents on Drive
+rclone ls lmnp-gdrive-user:Workspace/          # list workspace contents on Drive
 ```
 
-If rclone is not on `PATH` the hook installs it to `~/.local/bin/` automatically on first session start.
+If rclone is not on `PATH` the hook installs it via `apt-get` (falling back to direct download) on first session start.
 
 ## Bookkeeping artefacts
 

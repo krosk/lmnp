@@ -6,7 +6,7 @@
 #   bash gdrive-sync.sh down  — download Google Drive workspace/ to local
 set -euo pipefail
 
-REMOTE="lmnp-gdrive:workspace"
+REMOTE="lmnp-gdrive-user:Workspace"
 LOCAL="workspace"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
@@ -22,8 +22,8 @@ if ! command -v rclone &>/dev/null; then
 fi
 
 # Ensure the remote is configured
-if ! "${RCLONE}" listremotes 2>/dev/null | grep -qx "lmnp-gdrive:"; then
-    echo "Remote lmnp-gdrive not configured. Provide gdrive-sa.json and let the hook run." >&2
+if ! "${RCLONE}" listremotes 2>/dev/null | grep -qx "lmnp-gdrive-user:"; then
+    echo "Remote lmnp-gdrive-user not configured. Ensure .claude/gdrive-user-token.json exists and run the session-start hook." >&2
     exit 1
 fi
 
