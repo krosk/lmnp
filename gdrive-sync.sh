@@ -1,11 +1,16 @@
 #!/usr/bin/env bash
-# Upload local bookkeeping artefacts to lmnp-gdrive:lmnp/
+# Sync the local workspace/ folder with lmnp-gdrive:workspace/
+#
+# Usage:
+#   bash gdrive-sync.sh up    — upload local workspace/ to Google Drive
+#   bash gdrive-sync.sh down  — download Google Drive workspace/ to local
 set -euo pipefail
 
-REMOTE="lmnp-gdrive:lmnp"
+REMOTE="lmnp-gdrive:workspace"
+LOCAL="workspace"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-# Ensure rclone is available
+# Resolve rclone binary
 RCLONE=rclone
 if ! command -v rclone &>/dev/null; then
     if [[ -x "${HOME}/.local/bin/rclone" ]]; then
@@ -24,26 +29,26 @@ fi
 
 cd "${SCRIPT_DIR}"
 
-synced=0
-
-if [[ -f "LMNP.xlsx" ]]; then
-    echo "Uploading LMNP.xlsx → ${REMOTE}/"
-    "${RCLONE}" copy LMNP.xlsx "${REMOTE}/" --progress
-    synced=$((synced + 1))
-else
-    echo "LMNP.xlsx not found locally, skipping."
-fi
-
-if [[ -d "Justificatifs" ]]; then
-    echo "Syncing Justificatifs/ → ${REMOTE}/Justificatifs/"
-    "${RCLONE}" copy Justificatifs/ "${REMOTE}/Justificatifs/" --progress
-    synced=$((synced + 1))
-else
-    echo "Justificatifs/ not found locally, skipping."
-fi
-
-if [[ ${synced} -eq 0 ]]; then
-    echo "Nothing to sync."
-else
-    echo "Done."
-fi
+case "${1:-}" in
+    up)
+        if [[ ! -d "${LOCAL}" ]]; then
+            echo "Local ${LOCAL}/ not found." >&2
+            exit 1
+        fi
+        echo "Uploading ${LOCAL}/ → ${REMOTE}/"
+        "${RCLONE}" copy "${LOCAL}/" "${REMOTE}/" --progress
+        echo "Done."
+        ;;
+    down)
+        mkdir -p "${LOCAL}"
+        echo "Downloading ${REMOTE}/ → ${LOCAL}/"
+        "${RCLONE}" copy "${REMOTE}/" "${LOCAL}/" --progress
+        echo "Done."
+        ;;
+    *)
+        echo "Usage: bash gdrive-sync.sh <up|down>"
+        echo "  up   — upload local ${LOCAL}/ to Google Drive"
+        echo "  down — download Google Drive workspace/ to local ${LOCAL}/"
+        exit 1
+        ;;
+esac
