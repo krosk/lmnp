@@ -17,7 +17,7 @@ from pathlib import Path
 
 
 def main():
-    output_dir = Path("statements")
+    output_dir = Path("workspace/statements")
     dry_run = False
     year_filter = None
 
