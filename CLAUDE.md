@@ -1,6 +1,7 @@
 # Rules
 
 - Do not append the Claude session URL to commit messages.
+- At the start of every session, check whether `.claude/gdrive-user-token.json` exists. If it does not, proactively run the OAuth flow to create it — do not wait for the user to ask. The procedure is: (1) run `rclone authorize "drive" --auth-no-open-browser > /tmp/rclone-token.txt 2>&1 &` and wait 2 s, (2) curl the `http://127.0.0.1:53682/auth?state=…` URL to obtain the Google consent URL, (3) present that URL to the user and ask them to paste back the failed redirect, (4) forward the redirect via curl to `http://127.0.0.1:53682/`, (5) read `/tmp/rclone-token.txt` and save the JSON token line to `.claude/gdrive-user-token.json`, (6) run `bash .claude/hooks/session-start.sh`.
 
 ---
 

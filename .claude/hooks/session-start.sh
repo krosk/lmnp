@@ -7,7 +7,8 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 TOKEN_FILE="${SCRIPT_DIR}/../gdrive-user-token.json"
 
 if [[ ! -f "${TOKEN_FILE}" ]]; then
-    echo "[session-start] ${TOKEN_FILE} not found — skipping rclone gdrive setup" >&2
+    echo "[session-start] WARNING: ${TOKEN_FILE} not found — Google Drive sync is not configured." >&2
+    echo "[session-start] Run the OAuth flow to set it up: see CLAUDE.md § 'Google Drive sync (rclone)'." >&2
     exit 0
 fi
 
