@@ -31,6 +31,19 @@ if ! command -v rclone &>/dev/null; then
     fi
 fi
 
+# Trust Anthropic's sandbox TLS inspection CA so Python/requests can reach external HTTPS.
+# The sandbox intercepts all outbound TLS and re-signs with its own CA, which is not in
+# certifi's default bundle. We extract it live and append it if not already present.
+ANTHROPIC_CA_SUBJECT="sandbox-egress-production TLS Inspection CA"
+VENV_CABUNDLE="$(cd "${SCRIPT_DIR}/../.." && .venv/bin/python -c 'import certifi; print(certifi.where())' 2>/dev/null || true)"
+if [[ -n "${VENV_CABUNDLE}" ]] && ! grep -q "${ANTHROPIC_CA_SUBJECT}" "${VENV_CABUNDLE}" 2>/dev/null; then
+    echo "[session-start] Adding Anthropic sandbox CA to venv certifi bundle…"
+    echo | openssl s_client -connect mabanque.bnpparibas:443 -showcerts 2>/dev/null \
+        | awk '/BEGIN CERT/{c++} c==2{print} /END CERT/ && c==2{exit}' \
+        >> "${VENV_CABUNDLE}"
+    echo "[session-start] Anthropic sandbox CA added to ${VENV_CABUNDLE}"
+fi
+
 TOKEN="$(cat "${TOKEN_FILE}")"
 
 # Create or update the remote with the current token
